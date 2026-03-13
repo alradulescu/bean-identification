@@ -327,6 +327,112 @@ def generate_recipe(
     }
 
 
+# Coarseness scale: 1 (fine) → 5 (coarse).  Both particle_size_distribution
+# labels (from ground-coffee analysis) and grind_label values (from recipes)
+# are mapped onto this common scale.
+_GRIND_COARSENESS_SCALE: dict[str, int] = {
+    "fine": 1,
+    "fine-medium": 2,   # recipe grind_label for light roast
+    "medium-fine": 2,   # particle_size_distribution for light/medium-light
+    "medium": 3,
+    "medium-coarse": 4,
+    "coarse": 5,
+}
+
+# Approximate Comandante click delta per coarseness step
+_CLICKS_PER_SCALE_STEP = 2
+
+
+def get_grind_adjustment_recommendation(
+    ground_analysis: dict,
+    recipe: dict,
+) -> dict:
+    """
+    Compare the observed particle size (from a ground-coffee image) to the
+    recipe's target grind label and return per-grinder adjustment advice.
+
+    Parameters
+    ----------
+    ground_analysis:
+        Dict returned by ``analysis.analyze_ground_coffee_image``.
+    recipe:
+        Recipe dict returned by ``generate_recipe``.
+
+    Returns
+    -------
+    Dict with keys:
+
+    * ``status``  – ``"optimal"``, ``"too-fine"``, ``"too-coarse"``, or
+      ``"unknown"`` when grind sizes cannot be mapped.
+    * ``message`` – Human-readable explanation.
+    * ``cmd_clicks_adjustment`` – Signed integer applied to the recipe's base
+      grind click count.  Positive means grind *coarser* (add clicks);
+      negative means grind *finer* (subtract clicks).
+    * ``adjusted_grinder_settings`` – Per-grinder settings after applying
+      the adjustment (same structure as ``recipe["grinder_settings"]``).
+    """
+    observed_raw = (ground_analysis.get("particle_size_distribution") or "").lower().strip()
+    target_raw = (recipe.get("grind_label") or "").lower().strip()
+
+    obs_scale = _GRIND_COARSENESS_SCALE.get(observed_raw)
+    tgt_scale = _GRIND_COARSENESS_SCALE.get(target_raw)
+
+    if obs_scale is None or tgt_scale is None:
+        return {
+            "status": "unknown",
+            "message": (
+                "Could not compare grind sizes "
+                f"(observed: '{observed_raw}', target: '{target_raw}')."
+            ),
+            "cmd_clicks_adjustment": 0,
+            "adjusted_grinder_settings": recipe.get("grinder_settings", {}),
+        }
+
+    # Positive diff → observed is coarser than target → need to grind finer (subtract clicks)
+    # Negative diff → observed is finer than target → need to grind coarser (add clicks)
+    diff = obs_scale - tgt_scale
+    # Positive cmd_clicks_adjustment → add Comandante clicks (coarser)
+    # Negative cmd_clicks_adjustment → subtract Comandante clicks (finer)
+    clicks_adjustment = -diff * _CLICKS_PER_SCALE_STEP
+
+    base_clicks = recipe.get("grind_clicks", 30)
+    adjusted_clicks = max(18, min(40, base_clicks + clicks_adjustment))
+
+    if diff == 0:
+        status = "optimal"
+        message = (
+            f"Grind size looks good – observed '{observed_raw}' matches "
+            f"the recipe target '{target_raw}'."
+        )
+    elif diff < 0:
+        # Observed is finer than target
+        status = "too-fine"
+        abs_adj = abs(clicks_adjustment)
+        message = (
+            f"Ground particles appear too fine "
+            f"(observed: {observed_raw}, target: {target_raw}). "
+            f"Try grinding {abs_adj} click{'s' if abs_adj != 1 else ''} coarser "
+            f"on the Comandante C40 (or the equivalent on your grinder)."
+        )
+    else:
+        # Observed is coarser than target
+        status = "too-coarse"
+        abs_adj = abs(clicks_adjustment)
+        message = (
+            f"Ground particles appear too coarse "
+            f"(observed: {observed_raw}, target: {target_raw}). "
+            f"Try grinding {abs_adj} click{'s' if abs_adj != 1 else ''} finer "
+            f"on the Comandante C40 (or the equivalent on your grinder)."
+        )
+
+    return {
+        "status": status,
+        "message": message,
+        "cmd_clicks_adjustment": clicks_adjustment,
+        "adjusted_grinder_settings": _compute_grinder_settings(adjusted_clicks),
+    }
+
+
 def adjust_recipe_from_feedback(original_recipe: dict, feedback: dict) -> dict:
     """
     Adjust a recipe based on taste feedback.

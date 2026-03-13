@@ -26,6 +26,8 @@ class CoffeeSession(db.Model):
     producer = db.Column(db.String(128))
     process = db.Column(db.String(64))
     decaf_status = db.Column(db.String(16))
+    certifications = db.Column(db.String(256))
+    lot_number = db.Column(db.String(64))
 
     # Bean analysis
     bean_color = db.Column(db.String(64))
@@ -63,6 +65,8 @@ class CoffeeSession(db.Model):
             "producer": self.producer,
             "process": self.process,
             "decaf_status": self.decaf_status,
+            "certifications": self.certifications,
+            "lot_number": self.lot_number,
             "bean_color": self.bean_color,
             "bean_size": self.bean_size,
             "bean_uniformity": self.bean_uniformity,
