@@ -1,0 +1,100 @@
+/* ============================================================
+   Bean Identification – Coffee Brewing Assistant – styles.css
+   ============================================================ */
+
+body {
+  background-color: #f5f0eb;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.navbar-brand {
+  font-size: 1.2rem;
+  letter-spacing: 0.05em;
+}
+
+.nav-pills .nav-link.active {
+  background-color: #4a2c2a;
+}
+
+.nav-pills .nav-link {
+  color: #4a2c2a;
+}
+
+.card-header {
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.table-sm td, .table-sm th {
+  font-size: 0.875rem;
+}
+
+/* Recipe card */
+.recipe-card {
+  background: #fff8f0;
+  border-radius: 0.5rem;
+  border: 1px solid #d4b89a;
+  padding: 1rem 1.25rem;
+}
+
+.recipe-card h6 {
+  color: #4a2c2a;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.25rem;
+}
+
+.recipe-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2c1810;
+}
+
+.recipe-unit {
+  font-size: 0.85rem;
+  color: #7a5c4a;
+}
+
+/* Pour schedule timeline */
+.pour-step {
+  border-left: 3px solid #d4b89a;
+  padding-left: 1rem;
+  margin-bottom: 0.75rem;
+  position: relative;
+}
+
+.pour-step::before {
+  content: '';
+  position: absolute;
+  left: -7px;
+  top: 4px;
+  width: 11px;
+  height: 11px;
+  background: #4a2c2a;
+  border-radius: 50%;
+}
+
+.pour-step-number {
+  font-weight: 700;
+  color: #4a2c2a;
+}
+
+/* History cards */
+.history-item {
+  background: #fff;
+  border-radius: 0.5rem;
+  border: 1px solid #e0d8d0;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.history-item .badge {
+  font-size: 0.75rem;
+}
+
+footer {
+  border-top: 1px solid #e0d8d0;
+  background: #f5f0eb;
+}
