@@ -9,6 +9,7 @@ from PIL import Image
 
 from app.analysis import (
     _encode_image,
+    _extract_from_ocr_text,
     _parse_json_block,
     analyze_bean_image,
     analyze_ground_coffee_image,
@@ -145,3 +146,103 @@ class TestAnalyzeGroundCoffeeImage:
         result = analyze_ground_coffee_image(img_path, api_key="")
         valid_sizes = {"fine", "medium-fine", "medium", "medium-coarse", "coarse"}
         assert result["particle_size_distribution"] in valid_sizes
+
+
+# ---------------------------------------------------------------------------
+# _extract_from_ocr_text – decaf / half-caf detection
+# ---------------------------------------------------------------------------
+
+class TestExtractDecafStatus:
+    def test_decaf_keyword_detected(self):
+        result = _extract_from_ocr_text("100% Arabica Decaf Light Roast")
+        assert result.get("decaf_status") == "decaf"
+
+    def test_decaffeinated_keyword_detected(self):
+        result = _extract_from_ocr_text("Naturally Decaffeinated Ethiopian Coffee")
+        assert result.get("decaf_status") == "decaf"
+
+    def test_swiss_water_process_detected(self):
+        result = _extract_from_ocr_text("Colombian Swiss Water Process Decaf")
+        assert result.get("decaf_status") == "decaf"
+
+    def test_half_caf_detected(self):
+        result = _extract_from_ocr_text("Our special Half-Caf blend medium roast")
+        assert result.get("decaf_status") == "half-caf"
+
+    def test_half_caf_space_variant_detected(self):
+        result = _extract_from_ocr_text("Half Caf morning coffee blend")
+        assert result.get("decaf_status") == "half-caf"
+
+    def test_no_decaf_returns_none(self):
+        result = _extract_from_ocr_text("Ethiopian Yirgacheffe Light Roast Washed")
+        assert result.get("decaf_status") is None
+
+    def test_caffeine_free_detected(self):
+        result = _extract_from_ocr_text("Caffeine-Free Colombia Medium Roast")
+        assert result.get("decaf_status") == "decaf"
+
+
+# ---------------------------------------------------------------------------
+# _extract_from_ocr_text – expanded variety / species detection
+# ---------------------------------------------------------------------------
+
+class TestExtractSpeciesVariety:
+    def test_caturra_detected(self):
+        result = _extract_from_ocr_text("100% Caturra Colombia Natural")
+        assert result.get("species") == "Arabica (Caturra)"
+
+    def test_geisha_detected(self):
+        result = _extract_from_ocr_text("Panama Geisha Washed Light Roast")
+        assert result.get("species") == "Arabica (Geisha)"
+
+    def test_sl28_detected(self):
+        result = _extract_from_ocr_text("Kenya SL28 Natural")
+        assert result.get("species") == "Arabica (SL28)"
+
+    def test_sl34_detected(self):
+        result = _extract_from_ocr_text("Kenya SL34 Washed")
+        assert result.get("species") == "Arabica (SL34)"
+
+    def test_maragogype_detected(self):
+        result = _extract_from_ocr_text("Guatemala Maragogype Light Roast")
+        assert result.get("species") == "Arabica (Maragogype)"
+
+    def test_maragogipe_variant_detected(self):
+        result = _extract_from_ocr_text("Brazil Maragogipe Natural")
+        assert result.get("species") == "Arabica (Maragogype)"
+
+    def test_pacas_detected(self):
+        result = _extract_from_ocr_text("El Salvador Pacas Honey Process")
+        assert result.get("species") == "Arabica (Pacas)"
+
+    def test_pacamara_detected(self):
+        result = _extract_from_ocr_text("El Salvador Pacamara Natural")
+        assert result.get("species") == "Arabica (Pacamara)"
+
+    def test_wush_wush_detected(self):
+        result = _extract_from_ocr_text("Ethiopia Wush Wush Anaerobic Natural")
+        assert result.get("species") == "Arabica (Wush Wush)"
+
+    def test_pink_bourbon_detected_before_plain_bourbon(self):
+        result = _extract_from_ocr_text("Colombia Pink Bourbon Washed")
+        assert result.get("species") == "Arabica (Pink Bourbon)"
+
+    def test_yellow_bourbon_detected(self):
+        result = _extract_from_ocr_text("Brazil Yellow Bourbon Natural")
+        assert result.get("species") == "Arabica (Yellow Bourbon)"
+
+    def test_mokka_detected(self):
+        result = _extract_from_ocr_text("Yemen Mokka Natural Process")
+        assert result.get("species") == "Arabica (Mokka)"
+
+    def test_mundo_novo_detected(self):
+        result = _extract_from_ocr_text("Brazil Mundo Novo Natural")
+        assert result.get("species") == "Arabica (Mundo Novo)"
+
+    def test_default_species_in_label_image_result(self, tmp_path):
+        """analyze_label_image default must include decaf_status key with None value."""
+        img_path = str(tmp_path / "label.jpg")
+        _make_test_image(img_path)
+        result = analyze_label_image(img_path, api_key="")
+        assert "decaf_status" in result
+        assert result["decaf_status"] is None

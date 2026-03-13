@@ -2,7 +2,11 @@
 
 import pytest
 
-from app.recipes import adjust_recipe_from_feedback, generate_recipe
+from app.recipes import (
+    _compute_grinder_settings,
+    adjust_recipe_from_feedback,
+    generate_recipe,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -150,3 +154,133 @@ class TestAdjustRecipeFromFeedback:
              "body": 3, "sweetness": 3, "overall": 3},
         )
         assert adjusted["adjustments_made"] == ["No adjustments needed"]
+
+
+# ---------------------------------------------------------------------------
+# Multi-grinder settings
+# ---------------------------------------------------------------------------
+
+class TestGrinderSettings:
+    def _minimal_info(self, roast_level="medium", decaf_status=None):
+        return {
+            "origin": None,
+            "species": "Arabica",
+            "masl": None,
+            "roast_level": roast_level,
+            "process": None,
+            "decaf_status": decaf_status,
+        }
+
+    def test_recipe_includes_grinder_settings(self):
+        recipe = generate_recipe(self._minimal_info())
+        assert "grinder_settings" in recipe
+        assert isinstance(recipe["grinder_settings"], dict)
+
+    def test_all_supported_grinders_present(self):
+        recipe = generate_recipe(self._minimal_info())
+        expected_grinders = {
+            "Comandante C40",
+            "1Zpresso ZP6",
+            "KinGrinder K6",
+            "Timemore C3 / S2",
+            "Baratza Encore",
+            "Fellow Ode Gen 2",
+            "Hario Mini Mill Plus",
+        }
+        assert expected_grinders == set(recipe["grinder_settings"].keys())
+
+    def test_compute_grinder_settings_medium_roast(self):
+        settings = _compute_grinder_settings(30)
+        # Comandante C40 medium baseline is 30 clicks
+        assert settings["Comandante C40"] == "30 clicks"
+        # 1Zpresso ZP6 medium baseline is 2.0 rotations
+        assert settings["1Zpresso ZP6"] == "2.0 rotations"
+        # KinGrinder K6 medium baseline is 4.5 rotations
+        assert settings["KinGrinder K6"] == "4.5 rotations"
+        # Timemore C3/S2 medium baseline is 15 clicks
+        assert settings["Timemore C3 / S2"] == "15 clicks"
+        # Baratza Encore medium baseline is 20
+        assert settings["Baratza Encore"] == "20 setting"
+
+    def test_coarser_grind_gives_higher_settings_for_all_grinders(self):
+        fine_settings = _compute_grinder_settings(26)
+        coarse_settings = _compute_grinder_settings(34)
+        for grinder in fine_settings:
+            fine_val = float(fine_settings[grinder].split()[0])
+            coarse_val = float(coarse_settings[grinder].split()[0])
+            assert coarse_val > fine_val, (
+                f"{grinder}: coarse ({coarse_val}) should be > fine ({fine_val})"
+            )
+
+    def test_grinder_settings_change_with_roast(self):
+        light = generate_recipe(self._minimal_info("light"))
+        dark = generate_recipe(self._minimal_info("dark"))
+        light_cmd = float(light["grinder_settings"]["Comandante C40"].split()[0])
+        dark_cmd = float(dark["grinder_settings"]["Comandante C40"].split()[0])
+        assert dark_cmd > light_cmd
+
+    def test_zpresso_zp6_setting_is_reasonable(self):
+        # For any roast, 1Zpresso ZP6 V60 setting should be between 1.5 and 2.8
+        for roast in ("light", "medium", "dark"):
+            recipe = generate_recipe(self._minimal_info(roast))
+            zp6_val = float(recipe["grinder_settings"]["1Zpresso ZP6"].split()[0])
+            assert 1.5 <= zp6_val <= 2.8, (
+                f"ZP6 setting {zp6_val} out of expected range for {roast} roast"
+            )
+
+    def test_kingrinder_k6_setting_is_reasonable(self):
+        # For any roast, KinGrinder K6 V60 setting should be between 3.0 and 6.5
+        for roast in ("light", "medium", "dark"):
+            recipe = generate_recipe(self._minimal_info(roast))
+            k6_val = float(recipe["grinder_settings"]["KinGrinder K6"].split()[0])
+            assert 3.0 <= k6_val <= 6.5, (
+                f"K6 setting {k6_val} out of expected range for {roast} roast"
+            )
+
+
+# ---------------------------------------------------------------------------
+# Decaf / half-caf recipe adjustments
+# ---------------------------------------------------------------------------
+
+class TestDecafAdjustments:
+    def _info(self, roast="medium", decaf_status=None):
+        return {
+            "origin": None,
+            "species": "Arabica",
+            "masl": None,
+            "roast_level": roast,
+            "process": None,
+            "decaf_status": decaf_status,
+        }
+
+    def test_decaf_lowers_water_temp(self):
+        regular = generate_recipe(self._info())
+        decaf = generate_recipe(self._info(decaf_status="decaf"))
+        assert decaf["water_temp_c"] < regular["water_temp_c"]
+
+    def test_decaf_temp_reduction_is_two_degrees(self):
+        regular = generate_recipe(self._info("medium"))
+        decaf = generate_recipe(self._info("medium", decaf_status="decaf"))
+        assert regular["water_temp_c"] - decaf["water_temp_c"] == 2
+
+    def test_half_caf_lowers_temp_by_one_degree(self):
+        regular = generate_recipe(self._info("medium"))
+        half_caf = generate_recipe(self._info("medium", decaf_status="half-caf"))
+        assert regular["water_temp_c"] - half_caf["water_temp_c"] == 1
+
+    def test_decaf_temp_does_not_go_below_85(self):
+        # Repeated decaf + dark + low-altitude should never breach floor
+        info = self._info("dark", decaf_status="decaf")
+        recipe = generate_recipe(info, bean_analysis={"bean_density_estimate": "light"})
+        assert recipe["water_temp_c"] >= 85
+
+    def test_decaf_note_appears_in_recipe_notes(self):
+        info = self._info(decaf_status="decaf")
+        recipe = generate_recipe(info)
+        assert "decaf" in recipe["notes"].lower()
+
+    def test_regular_coffee_no_temp_reduction(self):
+        regular = generate_recipe(self._info())
+        from app.recipes import _ROAST_PROFILES
+        base_temp = _ROAST_PROFILES["medium"]["water_temp"]
+        assert regular["water_temp_c"] == base_temp

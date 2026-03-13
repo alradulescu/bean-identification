@@ -116,6 +116,7 @@ def api_analyze_label():
         tasting_notes=coffee_info.get("tasting_notes"),
         producer=coffee_info.get("producer"),
         process=coffee_info.get("process"),
+        decaf_status=coffee_info.get("decaf_status"),
     )
     db.session.add(session)
     db.session.commit()
@@ -164,6 +165,7 @@ def api_analyze_beans():
         "masl": session.masl,
         "roast_level": session.roast_level,
         "process": session.process,
+        "decaf_status": session.decaf_status,
     }
     recipe = generate_recipe(coffee_info, bean_analysis=bean_data)
     session.recipe_json = json.dumps(recipe)
@@ -214,6 +216,7 @@ def api_analyze_grounds():
             "masl": session.masl,
             "roast_level": session.roast_level,
             "process": session.process,
+            "decaf_status": session.decaf_status,
         }
         bean_data_for_recipe = {
             "bean_color": session.bean_color,
@@ -255,6 +258,7 @@ def api_get_recipe(session_id):
             "masl": session.masl,
             "roast_level": session.roast_level,
             "process": session.process,
+            "decaf_status": session.decaf_status,
         }
         recipe = generate_recipe(coffee_info)
         session.recipe_json = json.dumps(recipe)
