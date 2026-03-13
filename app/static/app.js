@@ -153,10 +153,34 @@ async function postImage(url, fieldName, file, extraFields = {}) {
   Object.entries(extraFields).forEach(([k, v]) => fd.append(k, v));
   const resp = await fetch(url, { method: 'POST', body: fd });
   if (!resp.ok) {
-    const err = await resp.json().catch(() => ({ error: 'Unknown error' }));
-    throw new Error(err.error || `HTTP ${resp.status}`);
+    throw new Error(await parseApiError(resp));
   }
   return resp.json();
+}
+
+async function parseApiError(resp) {
+  const contentType = (resp.headers.get('content-type') || '').toLowerCase();
+  if (contentType.includes('application/json')) {
+    const err = await resp.json().catch(() => ({}));
+    if (err && typeof err.error === 'string' && err.error.trim()) {
+      return err.error;
+    }
+  }
+
+  if (resp.status === 413) {
+    return 'Image is too large. Please upload a file smaller than 32 MB.';
+  }
+  if (resp.status === 415) {
+    return 'Unsupported image format. Please use JPG, PNG, or WEBP.';
+  }
+
+  const raw = await resp.text().catch(() => '');
+  const text = (raw || '').trim();
+  if (text) {
+    return text.slice(0, 200);
+  }
+
+  return `Request failed (HTTP ${resp.status})`;
 }
 
 // Switch to a tab by target id

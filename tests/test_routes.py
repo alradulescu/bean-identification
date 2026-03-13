@@ -63,6 +63,18 @@ class TestAnalyzeLabel:
         resp2 = client.get(f"/api/sessions/{session_id}")
         assert resp2.status_code == 200
 
+    def test_analyse_label_oversized_upload_returns_413_json(self, client):
+        client.application.config["MAX_CONTENT_LENGTH"] = 1024  # 1 KB
+        oversized = io.BytesIO(b"x" * 2048)
+        resp = client.post(
+            "/api/analyze-label",
+            data={"label_image": (oversized, "label.jpg")},
+            content_type="multipart/form-data",
+        )
+        assert resp.status_code == 413
+        data = resp.get_json()
+        assert "error" in data
+
 
 # ---------------------------------------------------------------------------
 # /api/analyze-beans

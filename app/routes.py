@@ -17,7 +17,16 @@ main = Blueprint("main", __name__)
 # Helpers
 # ---------------------------------------------------------------------------
 
-_ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
+_ALLOWED_EXTENSIONS = {
+    "png",
+    "jpg",
+    "jpeg",
+    "jfif",
+    "gif",
+    "webp",
+    "heic",
+    "heif",
+}
 
 
 def _allowed_file(filename: str) -> bool:
@@ -103,25 +112,30 @@ def api_analyze_label():
     if not image_path:
         return jsonify({"error": "No valid image provided in 'label_image' field"}), 400
 
-    api_key = current_app.config.get("OPENAI_API_KEY", "")
-    coffee_info = analyze_label_image(image_path, api_key=api_key)
+    try:
+        api_key = current_app.config.get("OPENAI_API_KEY", "")
+        coffee_info = analyze_label_image(image_path, api_key=api_key)
 
-    # Persist a new session
-    session = CoffeeSession(
-        origin=coffee_info.get("origin"),
-        species=coffee_info.get("species"),
-        masl=coffee_info.get("masl"),
-        roast_level=coffee_info.get("roast_level"),
-        roast_date=coffee_info.get("roast_date"),
-        tasting_notes=coffee_info.get("tasting_notes"),
-        producer=coffee_info.get("producer"),
-        process=coffee_info.get("process"),
-        decaf_status=coffee_info.get("decaf_status"),
-    )
-    db.session.add(session)
-    db.session.commit()
+        # Persist a new session
+        session = CoffeeSession(
+            origin=coffee_info.get("origin"),
+            species=coffee_info.get("species"),
+            masl=coffee_info.get("masl"),
+            roast_level=coffee_info.get("roast_level"),
+            roast_date=coffee_info.get("roast_date"),
+            tasting_notes=coffee_info.get("tasting_notes"),
+            producer=coffee_info.get("producer"),
+            process=coffee_info.get("process"),
+            decaf_status=coffee_info.get("decaf_status"),
+        )
+        db.session.add(session)
+        db.session.commit()
 
-    return jsonify({"session_id": session.id, "coffee_info": coffee_info}), 200
+        return jsonify({"session_id": session.id, "coffee_info": coffee_info}), 200
+    except Exception as exc:  # noqa: BLE001
+        db.session.rollback()
+        current_app.logger.exception("Failed to analyze/persist label session: %s", exc)
+        return jsonify({"error": "Failed to analyze label image"}), 500
 
 
 # ---------------------------------------------------------------------------
