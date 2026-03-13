@@ -153,6 +153,15 @@ function switchTab(targetId) {
   if (btn) btn.click();
 }
 
+/** Mark a step progress indicator as done or active. */
+function setProgressStep(stepKey, state) {
+  // state: 'active' | 'done' | ''
+  const el = document.getElementById(`prog-${stepKey}`);
+  if (!el) return;
+  el.classList.remove('active', 'done');
+  if (state) el.classList.add(state);
+}
+
 // ----- Step 1: Label --------------------------------------------------------
 
 document.getElementById('btnAnalyseLabel').addEventListener('click', async () => {
@@ -169,6 +178,10 @@ document.getElementById('btnAnalyseLabel').addEventListener('click', async () =>
 
     populateTable('labelTable', result.coffee_info);
     document.getElementById('labelResult').classList.remove('d-none');
+    // Hide the introductory banner once a session is started
+    document.getElementById('howItWorks').classList.add('d-none');
+    setProgressStep('label', 'done');
+    setProgressStep('beans', 'active');
   } catch (e) {
     alert('Error: ' + e.message);
   } finally {
@@ -198,6 +211,8 @@ document.getElementById('btnAnalyseBeans').addEventListener('click', async () =>
     });
     populateTable('beansTable', result.bean_analysis);
     document.getElementById('beansResult').classList.remove('d-none');
+    setProgressStep('beans', 'done');
+    setProgressStep('grounds', 'active');
     // Show recipe if available
     if (result.recipe) {
       renderRecipe(result.recipe, 'recipeContent');
@@ -220,6 +235,8 @@ document.getElementById('btnSkipToRecipe').addEventListener('click', async () =>
       if (data.recipe) {
         renderRecipe(data.recipe, 'recipeContent');
         document.getElementById('btnNextToFeedback').classList.remove('d-none');
+        setProgressStep('grounds', 'done');
+        setProgressStep('recipe', 'active');
       }
     } catch (_) {}
   }
@@ -246,6 +263,8 @@ document.getElementById('btnAnalyseGrounds').addEventListener('click', async () 
     });
     populateTable('groundsTable', result.ground_analysis);
     document.getElementById('groundsResult').classList.remove('d-none');
+    setProgressStep('grounds', 'done');
+    setProgressStep('recipe', 'active');
     if (result.recipe) {
       renderRecipe(result.recipe, 'recipeContent');
       document.getElementById('btnNextToFeedback').classList.remove('d-none');
@@ -261,7 +280,11 @@ document.getElementById('btnNextToRecipe').addEventListener('click', () => switc
 
 // ----- Step 4: Recipe (next) ------------------------------------------------
 
-document.getElementById('btnNextToFeedback').addEventListener('click', () => switchTab('step-feedback'));
+document.getElementById('btnNextToFeedback').addEventListener('click', () => {
+  setProgressStep('recipe', 'done');
+  setProgressStep('feedback', 'active');
+  switchTab('step-feedback');
+});
 
 // ----- Step 5: Feedback -----------------------------------------------------
 
@@ -309,6 +332,7 @@ document.getElementById('feedbackForm').addEventListener('submit', async (e) => 
 
     renderRecipe(result.adjusted_recipe, 'adjustedRecipeContent');
     document.getElementById('feedbackResult').classList.remove('d-none');
+    setProgressStep('feedback', 'done');
     // Also update recipe tab
     renderRecipe(result.adjusted_recipe, 'recipeContent');
   } catch (err) {
@@ -327,7 +351,7 @@ async function loadHistory() {
     const resp = await fetch('/api/sessions');
     const sessions = await resp.json();
     if (!sessions.length) {
-      container.innerHTML = '<p class="text-muted">No brewing sessions yet.</p>';
+      container.innerHTML = '<p class="text-muted">No brewing sessions yet. Complete Steps 1–2 to create your first session.</p>';
       return;
     }
     container.innerHTML = sessions.map(s => {
@@ -360,3 +384,6 @@ document.querySelector('[data-bs-target="#step-history"]').addEventListener('cli
 setupImagePreview('labelFile', 'labelPreview', 'labelImg');
 setupImagePreview('beansFile', 'beansPreview', 'beansImg');
 setupImagePreview('groundsFile', 'groundsPreview', 'groundsImg');
+
+// ----- Initial progress state -----------------------------------------------
+setProgressStep('label', 'active');

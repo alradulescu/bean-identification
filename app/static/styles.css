@@ -12,6 +12,64 @@ body {
   letter-spacing: 0.05em;
 }
 
+/* ===== Step progress bar ===== */
+.step-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+
+.step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+
+.step-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #d4b89a;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #c8a882;
+  transition: background 0.3s, border-color 0.3s;
+}
+
+.step-item.active .step-circle,
+.step-item.done .step-circle {
+  background: #4a2c2a;
+  border-color: #4a2c2a;
+}
+
+.step-label-text {
+  font-size: 0.7rem;
+  color: #7a5c4a;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.step-item.active .step-label-text {
+  color: #4a2c2a;
+}
+
+.step-connector {
+  height: 2px;
+  width: 2.5rem;
+  background: #d4b89a;
+  flex-shrink: 0;
+  margin-bottom: 18px;
+}
+
+/* ===== Nav pills ===== */
 .nav-pills .nav-link.active {
   background-color: #4a2c2a;
 }
@@ -20,16 +78,73 @@ body {
   color: #4a2c2a;
 }
 
+/* ===== Card headers ===== */
 .card-header {
   font-weight: 600;
   letter-spacing: 0.04em;
 }
 
+.step-header {
+  background-color: #4a2c2a;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.step-badge {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.optional-badge {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* ===== Instruction boxes ===== */
+.instruction-box {
+  background: #fff8f0;
+  border: 1px solid #e8d5bc;
+  border-left: 4px solid #d4b89a;
+  border-radius: 0.4rem;
+  padding: 1rem 1.25rem;
+}
+
+.instruction-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #4a2c2a;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.instruction-box ul {
+  color: #5a4030;
+}
+
+/* ===== Result header ===== */
+.result-header {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #2c1810;
+}
+
+/* ===== Table ===== */
 .table-sm td, .table-sm th {
   font-size: 0.875rem;
 }
 
-/* Recipe card */
+/* ===== Recipe card ===== */
 .recipe-card {
   background: #fff8f0;
   border-radius: 0.5rem;
@@ -57,7 +172,7 @@ body {
   color: #7a5c4a;
 }
 
-/* Pour schedule timeline */
+/* ===== Pour schedule timeline ===== */
 .pour-step {
   border-left: 3px solid #d4b89a;
   padding-left: 1rem;
@@ -81,7 +196,7 @@ body {
   color: #4a2c2a;
 }
 
-/* History cards */
+/* ===== History cards ===== */
 .history-item {
   background: #fff;
   border-radius: 0.5rem;
@@ -94,7 +209,23 @@ body {
   font-size: 0.75rem;
 }
 
+/* ===== Footer ===== */
 footer {
   border-top: 1px solid #e0d8d0;
   background: #f5f0eb;
+}
+
+/* ===== Responsive tweaks ===== */
+@media (max-width: 576px) {
+  .step-connector {
+    width: 1rem;
+  }
+  .step-label-text {
+    font-size: 0.6rem;
+  }
+  .step-circle {
+    width: 26px;
+    height: 26px;
+    font-size: 0.8rem;
+  }
 }

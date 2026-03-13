@@ -2,6 +2,9 @@
 
 A web-based tool that helps you brew better pour-over coffee by analysing your
 coffee bag label, whole beans, and ground coffee through photos.
+All image analysis runs **fully locally** – no API key or internet connection required.
+
+---
 
 ## Features
 
@@ -9,7 +12,7 @@ coffee bag label, whole beans, and ground coffee through photos.
 |------|-------------|--------------|
 | **1 – Label** | Photo of the bag label | Origin, MASL, species, roast level, roast date, tasting notes, process |
 | **2 – Beans** | Photo of whole beans on white/A4 background | Bean colour, size, uniformity, density estimate |
-| **3 – Grounds** | Photo of your ground coffee | Particle size distribution, fines %, grind uniformity |
+| **3 – Grounds** | Photo of your ground coffee *(optional)* | Particle size distribution, fines %, grind uniformity |
 | **4 – Recipe** | — | Personalised V60 pour-over recipe (dose, water, temp, grind, pour schedule) |
 | **5 – Feedback** | Rate acidity, sweetness, bitterness, body | Adjusted recipe for your next brew |
 | **History** | — | All previous brewing sessions |
@@ -18,36 +21,81 @@ Recipe parameters (water temperature, grind size, ratio, bloom time) are
 automatically tuned based on roast level, altitude (MASL), origin region,
 bean density, and particle size / fines content.
 
+---
+
 ## Tech stack
 
-* **Python 3.10+** · **Flask 3** · **SQLAlchemy** (SQLite)
-* **OpenCV** + **pytesseract** for fully local image analysis (no API key needed)
+* **Python 3.10** · **Flask 3** · **SQLAlchemy** (SQLite)
+* **OpenCV** + **pytesseract** for fully local image analysis
 * Bootstrap 5 + Vanilla JS frontend with camera capture support
 
-## Quick start
+---
+
+## Quick start (conda – recommended)
+
+> **Prerequisites:** [Miniconda](https://docs.conda.io/en/latest/miniconda.html) or
+> [Anaconda](https://www.anaconda.com/products/distribution) must be installed.
 
 ```bash
-# 1. Clone and install
+# 1. Clone the repository
 git clone https://github.com/alradulescu/bean-identification.git
 cd bean-identification
-pip install -r requirements.txt
 
-# 2. (Linux) Install the Tesseract OCR engine for label text extraction
-#    sudo apt-get install tesseract-ocr          # Debian/Ubuntu
-#    brew install tesseract                      # macOS
+# 2. Create and activate the conda environment
+#    This installs Python, Tesseract OCR, and all Python packages automatically.
+conda env create -f environment.yml
+conda activate bean-identification
 
-# 3. Run
+# 3. Run the app
 python run.py
-# → open http://localhost:5000
+# → Open http://localhost:5000 in your browser
 ```
 
-All image analysis runs locally – no API key or internet connection is required.
+The `environment.yml` file pins all dependencies (including the Tesseract OCR
+engine) so the environment is fully reproducible across macOS, Linux, and
+Windows.
+
+### Updating the environment after pulling changes
+
+```bash
+conda activate bean-identification
+conda env update -f environment.yml --prune
+```
+
+### Removing the environment
+
+```bash
+conda deactivate
+conda env remove -n bean-identification
+```
+
+---
+
+## Alternative: pip install (no conda)
+
+If you prefer not to use conda, install dependencies with pip instead.
+You will need to install the Tesseract OCR engine separately.
+
+```bash
+# Install Tesseract OCR
+#   Debian/Ubuntu:  sudo apt-get install tesseract-ocr
+#   macOS:          brew install tesseract
+#   Windows:        https://github.com/UB-Mannheim/tesseract/wiki
+
+pip install -r requirements.txt
+python run.py
+```
+
+---
 
 ## Running tests
 
 ```bash
+conda activate bean-identification   # or ensure the pip env is active
 pytest tests/ -v
 ```
+
+---
 
 ## Project layout
 
@@ -69,10 +117,13 @@ bean-identification/
 │   ├── test_analysis.py
 │   ├── test_recipes.py
 │   └── test_routes.py
-├── requirements.txt
+├── environment.yml      # Conda environment (recommended)
+├── requirements.txt     # pip fallback
 ├── run.py               # Entry point
 └── README.md
 ```
+
+---
 
 ## API reference
 
