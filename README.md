@@ -21,7 +21,7 @@ bean density, and particle size / fines content.
 ## Tech stack
 
 * **Python 3.10+** · **Flask 3** · **SQLAlchemy** (SQLite)
-* **OpenAI GPT-4o Vision API** for image analysis
+* **OpenCV** + **pytesseract** for fully local image analysis (no API key needed)
 * Bootstrap 5 + Vanilla JS frontend with camera capture support
 
 ## Quick start
@@ -32,18 +32,16 @@ git clone https://github.com/alradulescu/bean-identification.git
 cd bean-identification
 pip install -r requirements.txt
 
-# 2. Set your OpenAI API key (optional – the app works without it
-#    using sensible defaults)
-export OPENAI_API_KEY="sk-..."
+# 2. (Linux) Install the Tesseract OCR engine for label text extraction
+#    sudo apt-get install tesseract-ocr          # Debian/Ubuntu
+#    brew install tesseract                      # macOS
 
 # 3. Run
 python run.py
 # → open http://localhost:5000
 ```
 
-The app runs without an API key; image analysis will return default values in
-that case while still generating a valid recipe from manually entered
-information.
+All image analysis runs locally – no API key or internet connection is required.
 
 ## Running tests
 
@@ -59,7 +57,7 @@ bean-identification/
 │   ├── __init__.py      # Flask app factory
 │   ├── routes.py        # API + web routes
 │   ├── models.py        # SQLAlchemy models
-│   ├── analysis.py      # OpenAI Vision image analysis
+│   ├── analysis.py      # Local CV image analysis (OpenCV + pytesseract)
 │   ├── recipes.py       # Pour-over recipe logic
 │   ├── templates/
 │   │   └── index.html   # Single-page web UI

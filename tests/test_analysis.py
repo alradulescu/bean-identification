@@ -116,11 +116,12 @@ class TestAnalyzeBeanImage:
         assert "bean_density_estimate" in result
         assert "analysis_notes" in result
 
-    def test_default_bean_color_is_medium_brown(self, tmp_path):
+    def test_bean_color_is_valid_value(self, tmp_path):
         img_path = str(tmp_path / "beans.jpg")
         _make_test_image(img_path)
         result = analyze_bean_image(img_path, api_key="")
-        assert result["bean_color"] == "medium-brown"
+        valid_colors = {"light-tan", "cinnamon", "medium-brown", "dark-brown", "black"}
+        assert result["bean_color"] in valid_colors
 
 
 # ---------------------------------------------------------------------------
@@ -138,8 +139,9 @@ class TestAnalyzeGroundCoffeeImage:
         assert "grind_uniformity" in result
         assert "analysis_notes" in result
 
-    def test_default_particle_size_is_medium(self, tmp_path):
+    def test_particle_size_is_valid_value(self, tmp_path):
         img_path = str(tmp_path / "grounds.jpg")
         _make_test_image(img_path)
         result = analyze_ground_coffee_image(img_path, api_key="")
-        assert result["particle_size_distribution"] == "medium"
+        valid_sizes = {"fine", "medium-fine", "medium", "medium-coarse", "coarse"}
+        assert result["particle_size_distribution"] in valid_sizes
