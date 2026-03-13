@@ -185,13 +185,49 @@ _SPECIES_KEYWORDS: dict[str, str] = {
     "liberica": "Liberica",
     "geisha": "Arabica (Geisha)",
     "gesha": "Arabica (Gesha)",
+    "pink bourbon": "Arabica (Pink Bourbon)",
+    "red bourbon": "Arabica (Red Bourbon)",
+    "yellow bourbon": "Arabica (Yellow Bourbon)",
+    "orange bourbon": "Arabica (Orange Bourbon)",
     "bourbon": "Arabica (Bourbon)",
     "typica": "Arabica (Typica)",
     "caturra": "Arabica (Caturra)",
     "catuai": "Arabica (Catuai)",
     "pacamara": "Arabica (Pacamara)",
+    "pacas": "Arabica (Pacas)",
+    "maragogype": "Arabica (Maragogype)",
+    "maragogipe": "Arabica (Maragogype)",
+    "sl28": "Arabica (SL28)",
+    "sl34": "Arabica (SL34)",
+    "wush wush": "Arabica (Wush Wush)",
+    "castillo": "Arabica (Castillo)",
+    "mundo novo": "Arabica (Mundo Novo)",
+    "villa sarchi": "Arabica (Villa Sarchi)",
+    "mokka": "Arabica (Mokka)",
+    "moka": "Arabica (Mokka)",
+    "ruiru 11": "Arabica (Ruiru 11)",
+    "batian": "Arabica (Batian)",
     "heirloom": "Arabica (Heirloom)",
     "landrace": "Arabica (Heirloom)",
+}
+
+_DECAF_KEYWORDS: dict[str, str] = {
+    "naturally decaffeinated": "decaf",
+    "caffeine-free": "decaf",
+    "caffeine free": "decaf",
+    "swiss water process": "decaf",
+    "swiss water": "decaf",
+    "mountain water process": "decaf",
+    "mountain water": "decaf",
+    "co2 decaffeinated": "decaf",
+    "co2 decaf": "decaf",
+    "decaffeinated": "decaf",
+    "decaf": "decaf",
+    "half-decaf": "half-caf",
+    "half decaf": "half-caf",
+    "half-caf": "half-caf",
+    "half caf": "half-caf",
+    "50/50 blend": "half-caf",
 }
 
 _TASTING_NOTE_WORDS: set[str] = {
@@ -233,6 +269,11 @@ def _extract_from_ocr_text(text: str) -> dict:
     for kw, val in sorted(_SPECIES_KEYWORDS.items(), key=lambda x: -len(x[0])):
         if kw in tl:
             result["species"] = val
+            break
+
+    for kw, val in sorted(_DECAF_KEYWORDS.items(), key=lambda x: -len(x[0])):
+        if kw in tl:
+            result["decaf_status"] = val
             break
 
     # Altitude / MASL
@@ -491,6 +532,7 @@ def analyze_label_image(image_path: str, api_key: str = "") -> dict:
         "tasting_notes": None,
         "producer": None,
         "process": None,
+        "decaf_status": None,
     }
 
     if not _TESSERACT_AVAILABLE or not _PIL_AVAILABLE:

@@ -57,6 +57,17 @@ function renderRecipe(recipe, containerId) {
     });
   }
 
+  let grinderHtml = '';
+  if (recipe.grinder_settings && Object.keys(recipe.grinder_settings).length) {
+    grinderHtml = '<h6 class="mt-3 mb-2">Grinder Settings</h6>';
+    grinderHtml += '<table class="table table-sm table-bordered mb-0"><tbody>';
+    Object.entries(recipe.grinder_settings).forEach(([grinder, setting]) => {
+      grinderHtml += `<tr><td class="fw-semibold">${grinder}</td><td>${setting}</td></tr>`;
+    });
+    grinderHtml += '</tbody></table>';
+    grinderHtml += '<p class="text-muted small mt-1 mb-0">Settings are approximate V60 pour-over starting points. Adjust to taste.</p>';
+  }
+
   let adjustHtml = '';
   if (recipe.adjustments_made && recipe.adjustments_made.length) {
     adjustHtml = `<div class="alert alert-info mt-3 small">
@@ -103,6 +114,7 @@ function renderRecipe(recipe, containerId) {
         </div>
       </div>
       ${recipe.notes ? `<p class="text-muted small mb-0">${recipe.notes}</p>` : ''}
+      ${grinderHtml}
       ${scheduleHtml}
     </div>
     ${adjustHtml}`;

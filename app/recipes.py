@@ -80,6 +80,85 @@ _ORIGIN_ADJUSTMENTS = {
     "yemen": {"water_temp": 0, "ratio": 0},
 }
 
+# ---------------------------------------------------------------------------
+# Multi-grinder conversion table
+#
+# All settings are calibrated relative to the Comandante C40 as the reference
+# grinder. The formula for each grinder is:
+#   setting = medium_setting + (grind_clicks - 30) * scale_per_cmd_click
+#
+# Higher grind_clicks = coarser grind on Comandante, and higher setting values
+# represent coarser grinds on all supported grinders below.
+# ---------------------------------------------------------------------------
+
+_GRINDER_CONVERSIONS: dict[str, dict] = {
+    "Comandante C40": {
+        "unit": "clicks",
+        "medium_setting": 30.0,
+        "scale_per_cmd_click": 1.0,
+        "decimals": 0,
+    },
+    "1Zpresso ZP6": {
+        "unit": "rotations",
+        "medium_setting": 2.0,
+        # ~0.6 rotation range (1.7–2.3) over 8-click Comandante span
+        "scale_per_cmd_click": 0.075,
+        "decimals": 1,
+    },
+    "KinGrinder K6": {
+        "unit": "rotations",
+        "medium_setting": 4.5,
+        # ~2.0 rotation range (3.5–5.5) over 8-click Comandante span
+        "scale_per_cmd_click": 0.25,
+        "decimals": 1,
+    },
+    "Timemore C3 / S2": {
+        "unit": "clicks",
+        "medium_setting": 15.0,
+        # ~6 click range (12–18) over 8-click Comandante span
+        "scale_per_cmd_click": 0.75,
+        "decimals": 0,
+    },
+    "Baratza Encore": {
+        "unit": "setting",
+        "medium_setting": 20.0,
+        # ~10 setting range (15–25) over 8-click Comandante span
+        "scale_per_cmd_click": 1.25,
+        "decimals": 0,
+    },
+    "Fellow Ode Gen 2": {
+        "unit": "setting",
+        "medium_setting": 5.0,
+        # ~2 setting range (4–6) over 8-click Comandante span
+        "scale_per_cmd_click": 0.25,
+        "decimals": 1,
+    },
+    "Hario Mini Mill Plus": {
+        "unit": "turns",
+        "medium_setting": 7.0,
+        # ~4 turn range (5–9) over 8-click Comandante span
+        "scale_per_cmd_click": 0.5,
+        "decimals": 1,
+    },
+}
+
+
+def _compute_grinder_settings(grind_clicks: int) -> dict[str, str]:
+    """
+    Return a dict mapping each supported grinder name to its recommended
+    setting string for the given Comandante-equivalent *grind_clicks*.
+    """
+    settings: dict[str, str] = {}
+    for name, spec in _GRINDER_CONVERSIONS.items():
+        raw = spec["medium_setting"] + (grind_clicks - 30) * spec["scale_per_cmd_click"]
+        decimals = spec["decimals"]
+        if decimals == 0:
+            formatted = str(int(round(raw)))
+        else:
+            formatted = f"{raw:.{decimals}f}"
+        settings[name] = f"{formatted} {spec['unit']}"
+    return settings
+
 
 def _normalise_roast(roast_level: str | None) -> str:
     if not roast_level:
@@ -172,6 +251,16 @@ def generate_recipe(
         except ValueError:
             pass
 
+    # Decaf / half-caf adjustment:
+    # Decaffeination alters bean cell structure, so decaf coffees typically
+    # extract more readily. A slightly lower water temperature reduces the
+    # risk of over-extraction.
+    decaf_status = (coffee_info.get("decaf_status") or "").lower()
+    if decaf_status == "decaf":
+        profile["water_temp"] = max(profile["water_temp"] - 2, 85)
+    elif decaf_status == "half-caf":
+        profile["water_temp"] = max(profile["water_temp"] - 1, 85)
+
     water_g = round(coffee_dose_g * profile["ratio"])
     remaining_water_g = water_g - profile["bloom_water_g"]
 
@@ -219,6 +308,8 @@ def generate_recipe(
         notes_parts.append(f"MASL: {masl}")
     if coffee_info.get("process"):
         notes_parts.append(f"Process: {coffee_info['process']}")
+    if decaf_status:
+        notes_parts.append(decaf_status.title())
 
     return {
         "coffee_g": coffee_dose_g,
@@ -230,6 +321,7 @@ def generate_recipe(
         "total_time_s": profile["total_time_s"],
         "grind_clicks": profile["grind_clicks"],
         "grind_label": profile["grind_label"],
+        "grinder_settings": _compute_grinder_settings(profile["grind_clicks"]),
         "pour_schedule": pour_schedule,
         "notes": " | ".join(notes_parts),
     }
