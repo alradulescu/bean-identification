@@ -6,6 +6,7 @@ from app.recipes import (
     _compute_grinder_settings,
     adjust_recipe_from_feedback,
     generate_recipe,
+    get_grind_adjustment_recommendation,
 )
 
 
@@ -284,3 +285,103 @@ class TestDecafAdjustments:
         from app.recipes import _ROAST_PROFILES
         base_temp = _ROAST_PROFILES["medium"]["water_temp"]
         assert regular["water_temp_c"] == base_temp
+
+
+# ---------------------------------------------------------------------------
+# Grind adjustment recommendation
+# ---------------------------------------------------------------------------
+
+class TestGrindAdjustmentRecommendation:
+    def _make_recipe(self, grind_label="medium", grind_clicks=30):
+        return {
+            "grind_label": grind_label,
+            "grind_clicks": grind_clicks,
+            "grinder_settings": _compute_grinder_settings(grind_clicks),
+        }
+
+    def _make_ground(self, particle_size):
+        return {"particle_size_distribution": particle_size}
+
+    def test_optimal_when_sizes_match(self):
+        rec = get_grind_adjustment_recommendation(
+            self._make_ground("medium"), self._make_recipe("medium", 30)
+        )
+        assert rec["status"] == "optimal"
+        assert rec["cmd_clicks_adjustment"] == 0
+
+    def test_too_fine_when_observed_finer_than_target(self):
+        rec = get_grind_adjustment_recommendation(
+            self._make_ground("fine"), self._make_recipe("medium", 30)
+        )
+        assert rec["status"] == "too-fine"
+        # Need to go coarser → add Comandante clicks → positive adjustment
+        assert rec["cmd_clicks_adjustment"] > 0
+
+    def test_too_coarse_when_observed_coarser_than_target(self):
+        rec = get_grind_adjustment_recommendation(
+            self._make_ground("coarse"), self._make_recipe("medium", 30)
+        )
+        assert rec["status"] == "too-coarse"
+        # Need to go finer → subtract Comandante clicks → negative adjustment
+        assert rec["cmd_clicks_adjustment"] < 0
+
+    def test_adjustment_magnitude_one_step(self):
+        rec = get_grind_adjustment_recommendation(
+            self._make_ground("medium-coarse"), self._make_recipe("medium", 30)
+        )
+        # One step coarser → need 2 clicks finer → negative 2
+        assert rec["status"] == "too-coarse"
+        assert rec["cmd_clicks_adjustment"] == -2
+
+    def test_adjustment_magnitude_two_steps(self):
+        rec = get_grind_adjustment_recommendation(
+            self._make_ground("coarse"), self._make_recipe("medium", 30)
+        )
+        # Two steps coarser → need 4 clicks finer → negative 4
+        assert rec["cmd_clicks_adjustment"] == -4
+
+    def test_adjusted_grinder_settings_are_finer_when_too_coarse(self):
+        base_recipe = self._make_recipe("medium", 30)
+        rec = get_grind_adjustment_recommendation(
+            self._make_ground("coarse"), base_recipe
+        )
+        base_cmd = float(base_recipe["grinder_settings"]["Comandante C40"].split()[0])
+        adj_cmd = float(rec["adjusted_grinder_settings"]["Comandante C40"].split()[0])
+        assert adj_cmd < base_cmd
+
+    def test_unknown_when_particle_size_missing(self):
+        rec = get_grind_adjustment_recommendation(
+            {}, self._make_recipe("medium", 30)
+        )
+        assert rec["status"] == "unknown"
+        assert rec["cmd_clicks_adjustment"] == 0
+
+    def test_unknown_when_recipe_grind_label_missing(self):
+        rec = get_grind_adjustment_recommendation(
+            self._make_ground("medium"), {}
+        )
+        assert rec["status"] == "unknown"
+
+    def test_message_contains_observed_and_target(self):
+        rec = get_grind_adjustment_recommendation(
+            self._make_ground("fine"), self._make_recipe("medium", 30)
+        )
+        assert "fine" in rec["message"]
+        assert "medium" in rec["message"]
+
+    def test_adjusted_clicks_clamped_to_range(self):
+        # Even extreme cases should not go out of 18-40 range
+        rec = get_grind_adjustment_recommendation(
+            self._make_ground("coarse"), self._make_recipe("medium", 18)
+        )
+        adj_cmd_val = float(rec["adjusted_grinder_settings"]["Comandante C40"].split()[0])
+        # Translated back to clicks: the adjustment should be clamped
+        assert adj_cmd_val >= float(_compute_grinder_settings(18)["Comandante C40"].split()[0])
+
+    def test_fine_medium_recipe_label_maps_correctly(self):
+        # "fine-medium" is a valid recipe grind_label (light roast)
+        rec = get_grind_adjustment_recommendation(
+            self._make_ground("medium"), self._make_recipe("fine-medium", 26)
+        )
+        # medium (scale 3) vs fine-medium (scale 2) → observed is coarser
+        assert rec["status"] == "too-coarse"

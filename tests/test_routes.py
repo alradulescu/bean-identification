@@ -64,16 +64,20 @@ class TestAnalyzeLabel:
         assert resp2.status_code == 200
 
     def test_analyse_label_oversized_upload_returns_413_json(self, client):
+        original_limit = client.application.config["MAX_CONTENT_LENGTH"]
         client.application.config["MAX_CONTENT_LENGTH"] = 1024  # 1 KB
-        oversized = io.BytesIO(b"x" * 2048)
-        resp = client.post(
-            "/api/analyze-label",
-            data={"label_image": (oversized, "label.jpg")},
-            content_type="multipart/form-data",
-        )
-        assert resp.status_code == 413
-        data = resp.get_json()
-        assert "error" in data
+        try:
+            oversized = io.BytesIO(b"x" * 2048)
+            resp = client.post(
+                "/api/analyze-label",
+                data={"label_image": (oversized, "label.jpg")},
+                content_type="multipart/form-data",
+            )
+            assert resp.status_code == 413
+            data = resp.get_json()
+            assert "error" in data
+        finally:
+            client.application.config["MAX_CONTENT_LENGTH"] = original_limit
 
 
 # ---------------------------------------------------------------------------
@@ -170,6 +174,26 @@ class TestAnalyzeGrounds:
         data = resp.get_json()
         assert "ground_analysis" in data
         assert "recipe" in data
+
+    def test_analyse_grounds_returns_grind_recommendation(self, client):
+        session_id = self._create_session_with_beans(client)
+        resp = client.post(
+            "/api/analyze-grounds",
+            data={
+                "grounds_image": (io.BytesIO(_make_jpeg_bytes()), "grounds.jpg"),
+                "session_id": str(session_id),
+            },
+            content_type="multipart/form-data",
+        )
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert "grind_recommendation" in data
+        rec = data["grind_recommendation"]
+        assert "status" in rec
+        assert "message" in rec
+        assert "cmd_clicks_adjustment" in rec
+        assert "adjusted_grinder_settings" in rec
+        assert rec["status"] in {"optimal", "too-fine", "too-coarse", "unknown"}
 
 
 # ---------------------------------------------------------------------------

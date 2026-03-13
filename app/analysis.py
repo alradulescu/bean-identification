@@ -102,56 +102,176 @@ def _preprocess_for_ocr(pil_image):
 # ---------------------------------------------------------------------------
 
 _ORIGIN_KEYWORDS: dict[str, str] = {
+    # Ethiopian regions (more specific first)
     "yirgacheffe": "Ethiopia (Yirgacheffe)",
+    "yirgecheffe": "Ethiopia (Yirgacheffe)",  # common OCR variant
     "sidamo": "Ethiopia (Sidamo)",
+    "sidama": "Ethiopia (Sidama)",
     "harrar": "Ethiopia (Harrar)",
+    "harrar": "Ethiopia (Harrar)",
+    "harar": "Ethiopia (Harrar)",
+    "guji": "Ethiopia (Guji)",
+    "gedeo": "Ethiopia (Gedeo)",
+    "limu": "Ethiopia (Limu)",
+    "jimma": "Ethiopia (Jimma)",
+    "kaffa": "Ethiopia (Kaffa)",
     "ethiopia": "Ethiopia",
     "ethiopian": "Ethiopia",
+    # Kenyan regions
+    "nyeri": "Kenya (Nyeri)",
+    "kirinyaga": "Kenya (Kirinyaga)",
+    "murang'a": "Kenya (Muranga)",
+    "muranga": "Kenya (Muranga)",
+    "embu": "Kenya (Embu)",
     "kenya": "Kenya",
     "kenyan": "Kenya",
+    # Colombian regions
+    "huila": "Colombia (Huila)",
+    "nariño": "Colombia (Nariño)",
+    "narino": "Colombia (Nariño)",
+    "antioquia": "Colombia (Antioquia)",
+    "cauca": "Colombia (Cauca)",
+    "boyaca": "Colombia (Boyacá)",
+    "boyacá": "Colombia (Boyacá)",
+    "tolima": "Colombia (Tolima)",
+    "sierra nevada": "Colombia (Sierra Nevada)",
     "colombia": "Colombia",
     "colombian": "Colombia",
+    # Brazilian regions
+    "minas gerais": "Brazil (Minas Gerais)",
+    "cerrado mineiro": "Brazil (Cerrado Mineiro)",
+    "cerrado": "Brazil (Cerrado)",
+    "sul de minas": "Brazil (Sul de Minas)",
+    "mogiana": "Brazil (Mogiana)",
+    "chapada diamantina": "Brazil (Chapada Diamantina)",
+    "espirito santo": "Brazil (Espírito Santo)",
     "brazil": "Brazil",
     "brasil": "Brazil",
+    # Guatemalan regions
+    "antigua": "Guatemala (Antigua)",
+    "huehuetenango": "Guatemala (Huehuetenango)",
+    "atitlan": "Guatemala (Atitlán)",
+    "atitlán": "Guatemala (Atitlán)",
+    "acatenango": "Guatemala (Acatenango)",
+    "coban": "Guatemala (Cobán)",
     "guatemal": "Guatemala",
+    # Costa Rican regions
+    "tarrazú": "Costa Rica (Tarrazú)",
+    "tarrazu": "Costa Rica (Tarrazú)",
     "costa rica": "Costa Rica",
+    # Panamanian regions
+    "boquete": "Panama (Boquete)",
     "panama": "Panama",
+    "panamanian": "Panama",
+    # Central American
     "el salvador": "El Salvador",
+    "honduran": "Honduras",
     "honduras": "Honduras",
+    "marcala": "Honduras (Marcala)",
     "peru": "Peru",
+    "peruvian": "Peru",
     "ecuador": "Ecuador",
+    "ecuadorian": "Ecuador",
     "mexico": "Mexico",
+    "mexican": "Mexico",
+    "oaxaca": "Mexico (Oaxaca)",
+    "chiapas": "Mexico (Chiapas)",
     "nicaragua": "Nicaragua",
+    "bolivia": "Bolivia",
+    "venezuela": "Venezuela",
+    # Indonesian islands & regions
     "sumatra": "Indonesia (Sumatra)",
     "sulawesi": "Indonesia (Sulawesi)",
+    "toraja": "Indonesia (Sulawesi, Toraja)",
+    "kalosi": "Indonesia (Sulawesi, Kalosi)",
     "java": "Indonesia (Java)",
+    "flores": "Indonesia (Flores)",
+    "timor": "Indonesia (Timor)",
+    "lintong": "Indonesia (Sumatra, Lintong)",
+    "mandheling": "Indonesia (Sumatra, Mandheling)",
+    "gayo": "Indonesia (Sumatra, Gayo)",
     "indonesia": "Indonesia",
+    "indonesian": "Indonesia",
+    "papua new guinea": "Papua New Guinea",
+    "p.n.g": "Papua New Guinea",
+    "png coffee": "Papua New Guinea",
+    # Asian origins
     "vietnam": "Vietnam",
+    "vietnamese": "Vietnam",
+    "china": "China (Yunnan)",
+    "yunnan": "China (Yunnan)",
+    "laos": "Laos",
+    "myanmar": "Myanmar",
+    "thailand": "Thailand",
+    "philippines": "Philippines",
     "india": "India",
+    "coorg": "India (Coorg)",
+    "chikmagalur": "India (Chikmagalur)",
+    "araku": "India (Araku Valley)",
     "yemen": "Yemen",
+    "yemeni": "Yemen",
+    # African origins
     "rwanda": "Rwanda",
+    "rwandan": "Rwanda",
     "burundi": "Burundi",
     "tanzania": "Tanzania",
+    "tanzanian": "Tanzania",
     "uganda": "Uganda",
+    "zimbabwe": "Zimbabwe",
+    "malawi": "Malawi",
+    "cameroon": "Cameroon",
+    "congo": "DR Congo",
+    "zambia": "Zambia",
+    # Caribbean & Pacific
     "kona": "Hawaii (Kona, USA)",
     "hawaii": "Hawaii (USA)",
     "jamaica": "Jamaica",
+    "dominican": "Dominican Republic",
+    "cuba": "Cuba",
+    "haiti": "Haiti",
+    "puerto rico": "Puerto Rico",
 }
 
 _PROCESS_KEYWORDS: dict[str, str] = {
     "wet-processed": "washed",
     "wet process": "washed",
+    "fully washed": "washed",
     "washed": "washed",
-    "natural": "natural",
-    "dry process": "natural",
-    "sun-dried": "natural",
-    "sun dried": "natural",
+    "semi-washed": "semi-washed",
+    "semi washed": "semi-washed",
+    "wet-hulled": "wet-hulled",
+    "wet hulled": "wet-hulled",
+    "giling basah": "wet-hulled",       # Indonesian term
+    "black honey process": "black honey",
+    "black honey-processed": "black honey",
+    "black honey": "black honey",
+    "red honey process": "red honey",
+    "red honey-processed": "red honey",
+    "red honey": "red honey",
+    "yellow honey process": "yellow honey",
+    "yellow honey-processed": "yellow honey",
+    "yellow honey": "yellow honey",
+    "white honey process": "white honey",
+    "white honey-processed": "white honey",
+    "white honey": "white honey",
     "honey process": "honey",
     "honey-processed": "honey",
     "honey": "honey",
     "pulped natural": "honey",
+    "natural": "natural",
+    "dry process": "natural",
+    "dry-process": "natural",
+    "sun-dried": "natural",
+    "sun dried": "natural",
+    "dry natural": "natural",
+    "anaerobic natural": "anaerobic natural",
+    "anaerobic washed": "anaerobic washed",
     "anaerobic": "anaerobic",
-    "carbonic maceration": "anaerobic",
+    "carbonic maceration": "carbonic maceration",
+    "extended fermentation": "extended fermentation",
+    "double fermentation": "double fermentation",
+    "lactic": "lactic fermentation",
+    "thermal shock": "thermal shock",
 }
 
 _ROAST_KEYWORDS: dict[str, str] = {
@@ -160,29 +280,41 @@ _ROAST_KEYWORDS: dict[str, str] = {
     "light roast": "light",
     "blonde": "light",
     "cinnamon roast": "light",
+    "new england roast": "light",
+    "half city": "light",
+    "half-city": "light",
     "medium-light": "medium-light",
     "medium light": "medium-light",
+    "city roast": "medium-light",
     "medium-dark": "medium-dark",
     "medium dark": "medium-dark",
     "full-city": "medium-dark",
     "full city": "medium-dark",
+    "full city+": "medium-dark",
+    "full-city+": "medium-dark",
     "vienna roast": "medium-dark",
+    "continental roast": "medium-dark",
     "medium-roast": "medium",
     "medium roast": "medium",
+    "city+": "medium",
     "dark-roast": "dark",
     "dark roast": "dark",
     "darkly roasted": "dark",
     "french roast": "dark",
     "italian roast": "dark",
     "espresso roast": "dark",
+    "high roast": "dark",
+    "new orleans roast": "dark",
 }
 
 _SPECIES_KEYWORDS: dict[str, str] = {
     "coffea arabica": "Arabica",
     "arabica": "Arabica",
     "coffea canephora": "Robusta",
+    "coffea robusta": "Robusta",
     "robusta": "Robusta",
     "liberica": "Liberica",
+    "excelsa": "Liberica (Excelsa)",
     "geisha": "Arabica (Geisha)",
     "gesha": "Arabica (Gesha)",
     "pink bourbon": "Arabica (Pink Bourbon)",
@@ -203,12 +335,35 @@ _SPECIES_KEYWORDS: dict[str, str] = {
     "castillo": "Arabica (Castillo)",
     "mundo novo": "Arabica (Mundo Novo)",
     "villa sarchi": "Arabica (Villa Sarchi)",
+    "villalobos": "Arabica (Villalobos)",
     "mokka": "Arabica (Mokka)",
     "moka": "Arabica (Mokka)",
     "ruiru 11": "Arabica (Ruiru 11)",
+    "ruiru11": "Arabica (Ruiru 11)",
     "batian": "Arabica (Batian)",
     "heirloom": "Arabica (Heirloom)",
     "landrace": "Arabica (Heirloom)",
+    "catimor": "Arabica (Catimor)",
+    "sarchimor": "Arabica (Sarchimor)",
+    "hibrido de timor": "Arabica (Timor-Hybrid)",
+    "timor hybrid": "Arabica (Timor-Hybrid)",
+    "sudan rume": "Arabica (Sudan Rume)",
+    "obatã": "Arabica (Obatã)",
+    "obata": "Arabica (Obatã)",
+    "icatu": "Arabica (Icatu)",
+    "kent": "Arabica (Kent)",
+    "s795": "Arabica (S795)",
+    "s288": "Arabica (S288)",
+    "74110": "Arabica (74110)",
+    "74158": "Arabica (74158)",
+    "laurina": "Arabica (Laurina)",
+    "java variety": "Arabica (Java Variety)",
+    "maracaturra": "Arabica (Maracaturra)",
+    "anacafe 14": "Arabica (Anacafe 14)",
+    "marsellesa": "Arabica (Marsellesa)",
+    "lempira": "Arabica (Lempira)",
+    "ihcafe 90": "Arabica (IHCAFE 90)",
+    "parainema": "Arabica (Parainema)",
 }
 
 _DECAF_KEYWORDS: dict[str, str] = {
@@ -230,28 +385,116 @@ _DECAF_KEYWORDS: dict[str, str] = {
     "50/50 blend": "half-caf",
 }
 
-_TASTING_NOTE_WORDS: set[str] = {
-    "blueberry", "blackberry", "raspberry", "strawberry", "cherry", "grape",
-    "lemon", "lime", "orange", "grapefruit", "peach", "apricot", "plum",
-    "mango", "papaya", "pineapple", "passionfruit", "passion fruit",
-    "apple", "pear", "fig", "date", "raisin",
-    "chocolate", "cocoa",
-    "caramel", "toffee", "brown sugar",
-    "vanilla", "jasmine", "rose", "lavender", "bergamot",
-    "almond", "hazelnut", "walnut",
-    "cedar", "tobacco", "leather",
-    "tea", "herbal", "mint", "cinnamon", "clove", "nutmeg",
-    "winey", "bright", "fruity", "sweet", "juicy",
+_CERTIFICATION_KEYWORDS: dict[str, str] = {
+    "certified organic": "organic",
+    "usda organic": "organic",
+    "usda certified organic": "organic",
+    "eu organic": "organic",
+    "organic certified": "organic",
+    "organic": "organic",
+    "fair trade certified": "fair-trade",
+    "fairtrade certified": "fair-trade",
+    "fair trade": "fair-trade",
+    "fairtrade": "fair-trade",
+    "rainforest alliance certified": "rainforest-alliance",
+    "rainforest alliance": "rainforest-alliance",
+    "utz certified": "utz",
+    "utz": "utz",
+    "bird friendly": "bird-friendly",
+    "smithsonian bird friendly": "bird-friendly",
+    "shade grown": "shade-grown",
+    "shade-grown": "shade-grown",
+    "direct trade": "direct-trade",
+    "direct-trade": "direct-trade",
+    "specialty grade": "specialty",
+    "specialty coffee": "specialty",
+    "single estate": "single-estate",
+    "single origin": "single-origin",
+    "micro lot": "micro-lot",
+    "microlot": "micro-lot",
+    "cup of excellence": "cup-of-excellence",
+    "coe": "cup-of-excellence",
+    "4c certified": "4c",
+    "rainforest": "rainforest-alliance",
 }
+
+_TASTING_NOTE_WORDS: set[str] = {
+    # Berries & stone fruits
+    "blueberry", "blackberry", "raspberry", "strawberry", "cherry",
+    "black cherry", "maraschino", "grape", "currant", "elderberry",
+    "peach", "apricot", "plum", "nectarine", "lychee",
+    # Citrus
+    "lemon", "lime", "orange", "grapefruit", "tangerine", "yuzu",
+    "bergamot", "mandarin", "blood orange",
+    # Tropical fruits
+    "mango", "papaya", "pineapple", "passionfruit", "passion fruit",
+    "guava", "coconut", "banana", "jackfruit", "tamarind",
+    # Other fruits
+    "apple", "pear", "fig", "date", "raisin", "prune", "melon",
+    "watermelon", "pomegranate",
+    # Chocolate & sweet
+    "chocolate", "dark chocolate", "milk chocolate", "cocoa", "cacao",
+    "caramel", "toffee", "brown sugar", "molasses", "butterscotch",
+    "honey", "maple syrup", "marshmallow", "marzipan",
+    # Vanilla & floral
+    "vanilla", "jasmine", "rose", "lavender", "hibiscus", "chamomile",
+    "orange blossom", "honeysuckle", "lilac", "violet",
+    # Nuts
+    "almond", "hazelnut", "walnut", "pecan", "cashew", "peanut",
+    "macadamia", "pistachio",
+    # Spices & herbs
+    "cinnamon", "clove", "nutmeg", "cardamom", "ginger", "anise",
+    "black pepper", "allspice", "mint", "herbal", "thyme", "sage",
+    # Earthy & woody
+    "cedar", "tobacco", "leather", "earth", "musty", "forest floor",
+    "oak", "sandalwood", "pine", "resinous",
+    # Tea-like
+    "tea", "black tea", "green tea", "oolong", "earl grey",
+    # Descriptive
+    "winey", "bright", "fruity", "sweet", "juicy", "crisp",
+    "floral", "nutty", "spicy", "smoky", "buttery", "creamy",
+    "silky", "velvety", "clean", "complex", "balanced", "delicate",
+}
+
+
+def _normalize_ocr_text(text: str) -> str:
+    """
+    Normalize raw OCR output to improve keyword-matching reliability.
+
+    Collapses excess whitespace, lowercases, and normalises common OCR
+    character substitutions that occur on coffee bag labels.
+    The original text is *not* modified in-place.
+    """
+    # Collapse runs of whitespace / newlines to a single space
+    normalized = re.sub(r"[\r\n\t]+", " ", text)
+    normalized = re.sub(r" {2,}", " ", normalized)
+    # Lowercase before applying character substitutions so that the
+    # lookbehind/lookahead patterns (`[a-z]`) always match correctly.
+    normalized = normalized.lower()
+    # Common OCR letter/digit confusions on printed labels
+    substitutions = [
+        (r"(?<=[a-z])0(?=[a-z])", "o"),   # 0 → o inside words (e.g. "c0lombia")
+        (r"(?<=[a-z])1(?=[a-z])", "l"),   # 1 → l inside words (e.g. "1ight")
+    ]
+    for pattern, replacement in substitutions:
+        normalized = re.sub(pattern, replacement, normalized)
+    return normalized
 
 
 def _extract_from_ocr_text(text: str) -> dict:
     """Parse raw OCR text and extract coffee label fields via keyword matching."""
-    tl = text.lower()
+    tl = _normalize_ocr_text(text)
     result: dict = {}
 
-    # Match longest keyword first to avoid partial-match shadowing
-    for kw, val in sorted(_ORIGIN_KEYWORDS.items(), key=lambda x: -len(x[0])):
+    # Match origin keywords – prefer specific regional entries (those whose value
+    # contains a parenthetical region, e.g. "Ethiopia (Guji)") over bare country
+    # names before falling back to longest-key-first within each priority tier.
+    def _origin_sort_key(item: tuple) -> tuple:
+        kw, val = item
+        has_region = "(" in val
+        return (not has_region, -len(kw))
+
+    for kw, val in sorted(_ORIGIN_KEYWORDS.items(), key=_origin_sort_key):
         if kw in tl:
             result["origin"] = val
             break
@@ -275,6 +518,16 @@ def _extract_from_ocr_text(text: str) -> dict:
         if kw in tl:
             result["decaf_status"] = val
             break
+
+    # Certifications – collect all that match (a bag can carry multiple)
+    found_certs: list[str] = []
+    seen_certs: set[str] = set()
+    for kw, val in sorted(_CERTIFICATION_KEYWORDS.items(), key=lambda x: -len(x[0])):
+        if kw in tl and val not in seen_certs:
+            found_certs.append(val)
+            seen_certs.add(val)
+    if found_certs:
+        result["certifications"] = ", ".join(found_certs)
 
     # Altitude / MASL
     for pattern in (
@@ -301,6 +554,22 @@ def _extract_from_ocr_text(text: str) -> dict:
         if m:
             result["roast_date"] = m.group(0).strip()
             break
+
+    # Lot / batch number
+    for pattern in (
+        r"(?:lot|batch)\s*(?:no\.?|number|#)?\s*[:\-]?\s*([A-Z0-9][A-Z0-9\-]{1,19})",
+        r"\blot\s+([A-Z0-9\-]{2,20})\b",
+    ):
+        m = re.search(pattern, text, re.IGNORECASE)
+        if m:
+            candidate = m.group(1).strip()
+            # Skip tokens that look like dates or are purely numeric
+            if (
+                not re.fullmatch(r"\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}", candidate)
+                and not candidate.isdigit()
+            ):
+                result["lot_number"] = candidate
+                break
 
     # Tasting notes
     notes = [
@@ -521,7 +790,8 @@ def analyze_label_image(image_path: str, api_key: str = "") -> dict:
     interface compatibility but is not used.
 
     Returns a dict with keys: origin, species, masl, roast_level,
-    roast_date, tasting_notes, producer, process.
+    roast_date, tasting_notes, producer, process, decaf_status,
+    certifications, lot_number.
     """
     default = {
         "origin": None,
@@ -533,6 +803,8 @@ def analyze_label_image(image_path: str, api_key: str = "") -> dict:
         "producer": None,
         "process": None,
         "decaf_status": None,
+        "certifications": None,
+        "lot_number": None,
     }
 
     if not _TESSERACT_AVAILABLE or not _PIL_AVAILABLE:
@@ -541,17 +813,32 @@ def analyze_label_image(image_path: str, api_key: str = "") -> dict:
 
     try:
         pil_img = Image.open(image_path)
-        processed = _preprocess_for_ocr(pil_img)
+        processed_standard = _preprocess_for_ocr(pil_img)
 
-        # Try multiple page-segmentation modes for better coverage
+        # Also prepare an inverted version for labels with light text on dark
+        # backgrounds (e.g. kraft paper, foil bags with white print).
+        try:
+            from PIL import ImageOps
+            processed_inverted = _preprocess_for_ocr(ImageOps.invert(pil_img.convert("RGB")))
+        except Exception as inv_exc:  # noqa: BLE001
+            logger.debug("Could not create inverted label image: %s", inv_exc)
+            processed_inverted = None
+
         raw_texts: list[str] = []
-        for psm in (6, 3, 11):
-            try:
-                t = pytesseract.image_to_string(processed, config=f"--psm {psm} --oem 3")
-                if t.strip():
-                    raw_texts.append(t)
-            except Exception:  # noqa: BLE001
-                pass
+
+        # Try multiple page-segmentation modes on the standard preprocessed image.
+        # PSM 6 = uniform block of text (most common for labels)
+        # PSM 3 = fully automatic (handles mixed layouts)
+        # PSM 4 = single column (good for tall, narrow labels)
+        # PSM 11 = sparse text (best for text scattered over the bag)
+        for psm in (6, 3, 4, 11):
+            for img_variant in ([processed_standard] + ([processed_inverted] if processed_inverted else [])):
+                try:
+                    t = pytesseract.image_to_string(img_variant, config=f"--psm {psm} --oem 3")
+                    if t.strip():
+                        raw_texts.append(t)
+                except Exception:  # noqa: BLE001
+                    pass
 
         combined = "\n".join(raw_texts)
         if not combined.strip():

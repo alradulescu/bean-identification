@@ -9,7 +9,7 @@ from flask import Blueprint, current_app, jsonify, render_template, request
 
 from .analysis import analyze_bean_image, analyze_ground_coffee_image, analyze_label_image
 from .models import BrewingFeedback, CoffeeSession, db
-from .recipes import adjust_recipe_from_feedback, generate_recipe
+from .recipes import adjust_recipe_from_feedback, generate_recipe, get_grind_adjustment_recommendation
 
 main = Blueprint("main", __name__)
 
@@ -127,6 +127,8 @@ def api_analyze_label():
             producer=coffee_info.get("producer"),
             process=coffee_info.get("process"),
             decaf_status=coffee_info.get("decaf_status"),
+            certifications=coffee_info.get("certifications"),
+            lot_number=coffee_info.get("lot_number"),
         )
         db.session.add(session)
         db.session.commit()
@@ -244,10 +246,15 @@ def api_analyze_grounds():
 
     db.session.commit()
 
+    # Compare observed grind size to recipe target and advise adjustments
+    current_recipe = json.loads(session.recipe_json) if session.recipe_json else {}
+    grind_recommendation = get_grind_adjustment_recommendation(ground_data, current_recipe)
+
     return jsonify(
         {
             "ground_analysis": ground_data,
-            "recipe": json.loads(session.recipe_json) if session.recipe_json else None,
+            "recipe": current_recipe if current_recipe else None,
+            "grind_recommendation": grind_recommendation,
         }
     ), 200
 

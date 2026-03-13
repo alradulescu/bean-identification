@@ -21,6 +21,8 @@ def _apply_sqlite_schema_fixes(app: Flask) -> None:
             "producer": "VARCHAR(128)",
             "process": "VARCHAR(64)",
             "decaf_status": "VARCHAR(16)",
+            "certifications": "VARCHAR(256)",
+            "lot_number": "VARCHAR(64)",
         },
         "brewing_feedback": {
             "adjusted_recipe_json": "TEXT",
