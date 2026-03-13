@@ -13,50 +13,105 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
 </head>
 <body>
-  <!-- Navbar -->
+
+  <!-- ===== Navbar ===== -->
   <nav class="navbar navbar-dark bg-dark">
     <div class="container-fluid">
       <span class="navbar-brand mb-0 h1">☕ Coffee Brewing Assistant</span>
+      <span class="navbar-text text-muted small d-none d-md-inline">
+        Analyse · Brew · Refine
+      </span>
     </div>
   </nav>
 
   <main class="container py-4">
 
-    <!-- Step tabs -->
+    <!-- ===== How it works banner (visible until first session starts) ===== -->
+    <div id="howItWorks" class="alert alert-info mb-4">
+      <h5 class="alert-heading mb-2">How it works</h5>
+      <p class="mb-2">
+        Follow the steps below to get a personalised V60 pour-over recipe for your coffee.
+        All analysis runs <strong>locally on this server</strong> – no internet connection
+        or API key required.
+      </p>
+      <ol class="mb-0 ps-3">
+        <li><strong>Label</strong> – take or upload a photo of the bag label.</li>
+        <li><strong>Beans</strong> – photograph the whole beans on a white background.</li>
+        <li><strong>Grounds</strong> <em>(optional)</em> – photograph your ground coffee for extra precision.</li>
+        <li><strong>Recipe</strong> – view your personalised brew recipe.</li>
+        <li><strong>Feedback</strong> – rate the cup to refine the recipe for next time.</li>
+      </ol>
+    </div>
+
+    <!-- ===== Step progress indicator ===== -->
+    <div class="step-progress mb-4">
+      <div class="step-item active" id="prog-label">
+        <div class="step-circle">1</div>
+        <div class="step-label-text">Label</div>
+      </div>
+      <div class="step-connector"></div>
+      <div class="step-item" id="prog-beans">
+        <div class="step-circle">2</div>
+        <div class="step-label-text">Beans</div>
+      </div>
+      <div class="step-connector"></div>
+      <div class="step-item" id="prog-grounds">
+        <div class="step-circle">3</div>
+        <div class="step-label-text">Grounds</div>
+      </div>
+      <div class="step-connector"></div>
+      <div class="step-item" id="prog-recipe">
+        <div class="step-circle">4</div>
+        <div class="step-label-text">Recipe</div>
+      </div>
+      <div class="step-connector"></div>
+      <div class="step-item" id="prog-feedback">
+        <div class="step-circle">5</div>
+        <div class="step-label-text">Feedback</div>
+      </div>
+    </div>
+
+    <!-- ===== Step tabs ===== -->
     <ul class="nav nav-pills nav-fill mb-4" id="stepTabs" role="tablist">
       <li class="nav-item" role="presentation">
         <button class="nav-link active" id="tab-label" data-bs-toggle="pill"
-          data-bs-target="#step-label" type="button" role="tab">
+          data-bs-target="#step-label" type="button" role="tab"
+          aria-selected="true">
           1 · Label
         </button>
       </li>
       <li class="nav-item" role="presentation">
         <button class="nav-link" id="tab-beans" data-bs-toggle="pill"
-          data-bs-target="#step-beans" type="button" role="tab">
+          data-bs-target="#step-beans" type="button" role="tab"
+          aria-selected="false">
           2 · Beans
         </button>
       </li>
       <li class="nav-item" role="presentation">
         <button class="nav-link" id="tab-grounds" data-bs-toggle="pill"
-          data-bs-target="#step-grounds" type="button" role="tab">
+          data-bs-target="#step-grounds" type="button" role="tab"
+          aria-selected="false">
           3 · Grounds
         </button>
       </li>
       <li class="nav-item" role="presentation">
         <button class="nav-link" id="tab-recipe" data-bs-toggle="pill"
-          data-bs-target="#step-recipe" type="button" role="tab">
+          data-bs-target="#step-recipe" type="button" role="tab"
+          aria-selected="false">
           4 · Recipe
         </button>
       </li>
       <li class="nav-item" role="presentation">
         <button class="nav-link" id="tab-feedback" data-bs-toggle="pill"
-          data-bs-target="#step-feedback" type="button" role="tab">
+          data-bs-target="#step-feedback" type="button" role="tab"
+          aria-selected="false">
           5 · Feedback
         </button>
       </li>
       <li class="nav-item" role="presentation">
         <button class="nav-link" id="tab-history" data-bs-toggle="pill"
-          data-bs-target="#step-history" type="button" role="tab">
+          data-bs-target="#step-history" type="button" role="tab"
+          aria-selected="false">
           History
         </button>
       </li>
@@ -67,29 +122,49 @@
       <!-- ======= STEP 1 – Label ======= -->
       <div class="tab-pane fade show active" id="step-label" role="tabpanel">
         <div class="card shadow-sm">
-          <div class="card-header bg-dark text-white">Step 1 – Scan Coffee Bag Label</div>
+          <div class="card-header step-header">
+            <span class="step-badge">Step 1 of 5</span>
+            Scan the Coffee Bag Label
+          </div>
           <div class="card-body">
-            <p class="text-muted small">Take or upload a photo of the coffee bag label to extract origin, roast level, altitude, and other details.</p>
+
+            <div class="instruction-box mb-4">
+              <h6 class="instruction-title">📷 What to do</h6>
+              <p class="mb-1">Take a photo or upload an image of the <strong>printed label</strong> on your coffee bag.</p>
+              <ul class="mb-0 small">
+                <li>Make sure the label text is clearly visible and in focus.</li>
+                <li>Ensure the image is well-lit to help the text reader extract information accurately.</li>
+                <li>The app will extract: origin, roast level, altitude (MASL), process, and tasting notes.</li>
+              </ul>
+            </div>
 
             <div class="mb-3">
-              <label class="form-label">Upload label image</label>
+              <label class="form-label fw-semibold">Label image</label>
               <input type="file" class="form-control" id="labelFile" accept="image/*" capture="environment" />
+              <div class="form-text">Accepted formats: JPG, PNG, WEBP. On mobile, you can take a photo directly.</div>
             </div>
 
             <div id="labelPreview" class="mb-3 d-none">
+              <p class="small text-muted mb-1">Preview:</p>
               <img id="labelImg" src="" alt="Label preview" class="img-thumbnail" style="max-height:300px" />
             </div>
 
             <button class="btn btn-primary" id="btnAnalyseLabel">
-              <span class="spinner-border spinner-border-sm d-none" id="spinLabel"></span>
+              <span class="spinner-border spinner-border-sm d-none me-1" id="spinLabel"></span>
               Analyse Label
             </button>
 
             <div id="labelResult" class="mt-4 d-none">
-              <h5>Extracted Information</h5>
+              <div class="result-header mb-2">
+                <span class="badge bg-success me-2">✓ Done</span>
+                <strong>Extracted Information</strong>
+              </div>
               <table class="table table-sm table-bordered" id="labelTable"></table>
-              <button class="btn btn-outline-secondary btn-sm mt-2" id="btnNextToBeans">
-                Next: Analyse Beans →
+              <p class="text-muted small mb-3">
+                Review the extracted details above. If something looks wrong, try a clearer photo of the label.
+              </p>
+              <button class="btn btn-success" id="btnNextToBeans">
+                Continue to Step 2: Analyse Beans →
               </button>
             </div>
           </div>
@@ -99,37 +174,59 @@
       <!-- ======= STEP 2 – Beans ======= -->
       <div class="tab-pane fade" id="step-beans" role="tabpanel">
         <div class="card shadow-sm">
-          <div class="card-header bg-dark text-white">Step 2 – Photograph the Beans</div>
+          <div class="card-header step-header">
+            <span class="step-badge">Step 2 of 5</span>
+            Photograph the Whole Beans
+          </div>
           <div class="card-body">
-            <p class="text-muted small">Place the whole beans on a white background (e.g. A4 paper) and take a photo for colour, size, and density analysis.</p>
+
+            <div class="instruction-box mb-4">
+              <h6 class="instruction-title">📷 What to do</h6>
+              <p class="mb-1">Place a small handful of <strong>whole, unground beans</strong> on a plain white surface (e.g. a sheet of A4 paper) and take a photo.</p>
+              <ul class="mb-0 small">
+                <li>Spread the beans so they are not overlapping each other.</li>
+                <li>Use good overhead lighting to avoid shadows.</li>
+                <li>The app will analyse: bean colour, size, uniformity, and density estimate.</li>
+              </ul>
+            </div>
 
             <div id="noSessionWarning" class="alert alert-warning d-none">
-              Please complete Step 1 first.
+              ⚠️ <strong>Please complete Step 1 first</strong> – the app needs label information before analysing beans.
             </div>
 
             <div class="mb-3">
-              <label class="form-label">Upload bean image</label>
+              <label class="form-label fw-semibold">Bean image</label>
               <input type="file" class="form-control" id="beansFile" accept="image/*" capture="environment" />
+              <div class="form-text">Accepted formats: JPG, PNG, WEBP. On mobile, you can take a photo directly.</div>
             </div>
 
             <div id="beansPreview" class="mb-3 d-none">
+              <p class="small text-muted mb-1">Preview:</p>
               <img id="beansImg" src="" alt="Beans preview" class="img-thumbnail" style="max-height:300px" />
             </div>
 
             <button class="btn btn-primary" id="btnAnalyseBeans">
-              <span class="spinner-border spinner-border-sm d-none" id="spinBeans"></span>
+              <span class="spinner-border spinner-border-sm d-none me-1" id="spinBeans"></span>
               Analyse Beans
             </button>
 
             <div id="beansResult" class="mt-4 d-none">
-              <h5>Bean Analysis</h5>
+              <div class="result-header mb-2">
+                <span class="badge bg-success me-2">✓ Done</span>
+                <strong>Bean Analysis</strong>
+              </div>
               <table class="table table-sm table-bordered" id="beansTable"></table>
-              <button class="btn btn-outline-secondary btn-sm mt-2" id="btnNextToGrounds">
-                Next: Analyse Grounds →
-              </button>
-              <button class="btn btn-outline-primary btn-sm mt-2" id="btnSkipToRecipe">
-                Skip to Recipe →
-              </button>
+              <p class="text-muted small mb-3">
+                You can now photograph your ground coffee for extra recipe precision, or skip straight to the recipe.
+              </p>
+              <div class="d-flex flex-wrap gap-2">
+                <button class="btn btn-success" id="btnNextToGrounds">
+                  Continue to Step 3: Analyse Grounds →
+                </button>
+                <button class="btn btn-outline-primary" id="btnSkipToRecipe">
+                  Skip to Recipe →
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -138,29 +235,50 @@
       <!-- ======= STEP 3 – Grounds ======= -->
       <div class="tab-pane fade" id="step-grounds" role="tabpanel">
         <div class="card shadow-sm">
-          <div class="card-header bg-dark text-white">Step 3 – Photograph Ground Coffee</div>
+          <div class="card-header step-header">
+            <span class="step-badge optional-badge">Step 3 of 5 · Optional</span>
+            Photograph the Ground Coffee
+          </div>
           <div class="card-body">
-            <p class="text-muted small">Optional: photograph your ground coffee to estimate particle size distribution and fines content, which will further refine the recipe.</p>
+
+            <div class="instruction-box mb-4">
+              <h6 class="instruction-title">📷 What to do <span class="badge bg-secondary ms-1">Optional</span></h6>
+              <p class="mb-1">Grind a small amount of coffee and spread it thinly on a white surface. Take a close-up photo.</p>
+              <ul class="mb-0 small">
+                <li>This step is optional but improves recipe accuracy significantly.</li>
+                <li>Ensure the grounds are spread in a thin, even layer.</li>
+                <li>The app will estimate: particle size distribution, fines percentage, and grind uniformity.</li>
+                <li>If you skip this step, the recipe will be generated from the label and bean data alone.</li>
+              </ul>
+            </div>
 
             <div class="mb-3">
-              <label class="form-label">Upload grounds image</label>
+              <label class="form-label fw-semibold">Grounds image</label>
               <input type="file" class="form-control" id="groundsFile" accept="image/*" capture="environment" />
+              <div class="form-text">Accepted formats: JPG, PNG, WEBP. On mobile, you can take a photo directly.</div>
             </div>
 
             <div id="groundsPreview" class="mb-3 d-none">
+              <p class="small text-muted mb-1">Preview:</p>
               <img id="groundsImg" src="" alt="Grounds preview" class="img-thumbnail" style="max-height:300px" />
             </div>
 
             <button class="btn btn-primary" id="btnAnalyseGrounds">
-              <span class="spinner-border spinner-border-sm d-none" id="spinGrounds"></span>
+              <span class="spinner-border spinner-border-sm d-none me-1" id="spinGrounds"></span>
               Analyse Grounds
             </button>
 
             <div id="groundsResult" class="mt-4 d-none">
-              <h5>Ground Coffee Analysis</h5>
+              <div class="result-header mb-2">
+                <span class="badge bg-success me-2">✓ Done</span>
+                <strong>Ground Coffee Analysis</strong>
+              </div>
               <table class="table table-sm table-bordered" id="groundsTable"></table>
-              <button class="btn btn-outline-secondary btn-sm mt-2" id="btnNextToRecipe">
-                Next: View Recipe →
+              <p class="text-muted small mb-3">
+                Your recipe has been refined using the grind data. Proceed to view the full recipe.
+              </p>
+              <button class="btn btn-success" id="btnNextToRecipe">
+                Continue to Step 4: View Recipe →
               </button>
             </div>
           </div>
@@ -170,13 +288,30 @@
       <!-- ======= STEP 4 – Recipe ======= -->
       <div class="tab-pane fade" id="step-recipe" role="tabpanel">
         <div class="card shadow-sm">
-          <div class="card-header bg-dark text-white">Step 4 – Pour Over Recipe</div>
+          <div class="card-header step-header">
+            <span class="step-badge">Step 4 of 5</span>
+            Your Pour-Over Recipe
+          </div>
           <div class="card-body">
-            <div id="recipeContent">
-              <p class="text-muted">Complete the previous steps to generate a recipe.</p>
+
+            <div class="instruction-box mb-4">
+              <h6 class="instruction-title">☕ How to use this recipe</h6>
+              <ul class="mb-0 small">
+                <li>Set your grinder to the <strong>Grind</strong> setting shown below.</li>
+                <li>Weigh out the <strong>Coffee</strong> dose, then heat water to the <strong>Temp</strong> shown.</li>
+                <li>Follow the <strong>Pour Schedule</strong> below step by step for the best extraction.</li>
+                <li>Once you've brewed and tasted the cup, continue to <strong>Step 5</strong> to refine the recipe.</li>
+              </ul>
             </div>
-            <button class="btn btn-outline-secondary btn-sm mt-3 d-none" id="btnNextToFeedback">
-              Next: Submit Feedback →
+
+            <div id="recipeContent">
+              <p class="text-muted">
+                ℹ️ Your recipe will appear here after you complete Steps 1 and 2.
+                Use the tabs above to navigate back if needed.
+              </p>
+            </div>
+            <button class="btn btn-success mt-3 d-none" id="btnNextToFeedback">
+              Continue to Step 5: Submit Feedback →
             </button>
           </div>
         </div>
@@ -185,65 +320,88 @@
       <!-- ======= STEP 5 – Feedback ======= -->
       <div class="tab-pane fade" id="step-feedback" role="tabpanel">
         <div class="card shadow-sm">
-          <div class="card-header bg-dark text-white">Step 5 – Taste Feedback</div>
+          <div class="card-header step-header">
+            <span class="step-badge">Step 5 of 5</span>
+            Rate Your Brew
+          </div>
           <div class="card-body">
-            <p class="text-muted small">After brewing, rate the cup to receive an adjusted recipe for next time.</p>
+
+            <div class="instruction-box mb-4">
+              <h6 class="instruction-title">✍️ What to do</h6>
+              <p class="mb-1">After brewing and tasting your cup, rate each characteristic below. The app will adjust the recipe for your next brew based on your feedback.</p>
+              <ul class="mb-0 small">
+                <li><strong>Extraction assessment:</strong> choose how balanced the cup tasted overall.</li>
+                <li><strong>Sliders:</strong> rate acidity, sweetness, bitterness, and body from 1 (low) to 5 (high).</li>
+                <li>After submitting, an updated recipe will appear below the form.</li>
+              </ul>
+            </div>
 
             <div id="noSessionFeedback" class="alert alert-warning d-none">
-              Please complete Steps 1–2 first.
+              ⚠️ <strong>Please complete Steps 1–2 first</strong> before submitting feedback.
             </div>
 
             <form id="feedbackForm">
-              <div class="mb-3">
-                <label class="form-label">Extraction assessment</label>
+              <div class="mb-4">
+                <label class="form-label fw-semibold">How did the cup taste overall?</label>
                 <select class="form-select" id="fbExtraction" name="extraction">
-                  <option value="balanced">Balanced</option>
-                  <option value="under">Under-extracted (sour / sharp)</option>
-                  <option value="over">Over-extracted (bitter / harsh)</option>
+                  <option value="balanced">⚖️ Balanced – tasted just right</option>
+                  <option value="under">🍋 Under-extracted – sour or sharp</option>
+                  <option value="over">☕ Over-extracted – bitter or harsh</option>
                 </select>
+                <div class="form-text">This is the most important adjustment factor.</div>
               </div>
 
-              <div class="row g-3 mb-3">
+              <p class="fw-semibold mb-2">Rate the following characteristics (1 = low, 5 = high):</p>
+
+              <div class="row g-3 mb-4">
                 <div class="col-6 col-md-3">
                   <label class="form-label">Acidity <span class="badge bg-secondary" id="acidVal">3</span></label>
                   <input type="range" class="form-range" min="1" max="5" value="3" id="fbAcidity" name="acidity" />
-                  <div class="d-flex justify-content-between small text-muted"><span>Flat</span><span>Bright</span></div>
+                  <div class="d-flex justify-content-between small text-muted"><span>1 · Flat</span><span>5 · Bright</span></div>
                 </div>
                 <div class="col-6 col-md-3">
                   <label class="form-label">Sweetness <span class="badge bg-secondary" id="sweetVal">3</span></label>
                   <input type="range" class="form-range" min="1" max="5" value="3" id="fbSweetness" name="sweetness" />
-                  <div class="d-flex justify-content-between small text-muted"><span>Lacking</span><span>Sweet</span></div>
+                  <div class="d-flex justify-content-between small text-muted"><span>1 · Lacking</span><span>5 · Sweet</span></div>
                 </div>
                 <div class="col-6 col-md-3">
                   <label class="form-label">Bitterness <span class="badge bg-secondary" id="bitterVal">3</span></label>
                   <input type="range" class="form-range" min="1" max="5" value="3" id="fbBitterness" name="bitterness" />
-                  <div class="d-flex justify-content-between small text-muted"><span>None</span><span>Intense</span></div>
+                  <div class="d-flex justify-content-between small text-muted"><span>1 · None</span><span>5 · Intense</span></div>
                 </div>
                 <div class="col-6 col-md-3">
                   <label class="form-label">Body <span class="badge bg-secondary" id="bodyVal">3</span></label>
                   <input type="range" class="form-range" min="1" max="5" value="3" id="fbBody" name="body" />
-                  <div class="d-flex justify-content-between small text-muted"><span>Thin</span><span>Heavy</span></div>
+                  <div class="d-flex justify-content-between small text-muted"><span>1 · Thin</span><span>5 · Heavy</span></div>
                 </div>
               </div>
 
-              <div class="mb-3">
-                <label class="form-label">Overall rating <span class="badge bg-secondary" id="overallVal">3</span>/5</label>
+              <div class="mb-4">
+                <label class="form-label fw-semibold">Overall enjoyment <span class="badge bg-secondary" id="overallVal">3</span> / 5</label>
                 <input type="range" class="form-range" min="1" max="5" value="3" id="fbOverall" name="overall" />
+                <div class="d-flex justify-content-between small text-muted"><span>1 · Poor</span><span>5 · Excellent</span></div>
               </div>
 
-              <div class="mb-3">
-                <label class="form-label">Additional notes</label>
-                <textarea class="form-control" id="fbNotes" name="notes" rows="3" placeholder="Any other observations..."></textarea>
+              <div class="mb-4">
+                <label class="form-label fw-semibold">Additional notes <span class="text-muted fw-normal">(optional)</span></label>
+                <textarea class="form-control" id="fbNotes" name="notes" rows="3"
+                  placeholder="e.g. 'slight papery aftertaste', 'very floral', 'could be hotter'…"></textarea>
               </div>
 
               <button type="submit" class="btn btn-success">
-                <span class="spinner-border spinner-border-sm d-none" id="spinFeedback"></span>
+                <span class="spinner-border spinner-border-sm d-none me-1" id="spinFeedback"></span>
                 Submit &amp; Get Adjusted Recipe
               </button>
             </form>
 
             <div id="feedbackResult" class="mt-4 d-none">
-              <h5>Adjusted Recipe</h5>
+              <div class="result-header mb-2">
+                <span class="badge bg-success me-2">✓ Done</span>
+                <strong>Adjusted Recipe for Next Time</strong>
+              </div>
+              <p class="text-muted small mb-3">
+                The recipe below has been tuned based on your feedback. Use it for your next brew.
+              </p>
               <div id="adjustedRecipeContent"></div>
             </div>
           </div>
@@ -253,9 +411,16 @@
       <!-- ======= History ======= -->
       <div class="tab-pane fade" id="step-history" role="tabpanel">
         <div class="card shadow-sm">
-          <div class="card-header bg-dark text-white">Brewing History</div>
+          <div class="card-header step-header">
+            Brewing History
+          </div>
           <div class="card-body">
-            <button class="btn btn-outline-primary btn-sm mb-3" id="btnRefreshHistory">Refresh</button>
+            <p class="text-muted small mb-3">
+              All your previous brewing sessions are listed here. Each card shows the coffee origin, recipe used, and any tasting notes recorded.
+            </p>
+            <button class="btn btn-outline-primary btn-sm mb-3" id="btnRefreshHistory">
+              🔄 Refresh History
+            </button>
             <div id="historyList">
               <p class="text-muted">Loading…</p>
             </div>
@@ -267,7 +432,7 @@
   </main>
 
   <footer class="text-center text-muted small py-3">
-    Bean Identification – Coffee Brewing Assistant
+    Bean Identification – Coffee Brewing Assistant &nbsp;·&nbsp; All analysis runs locally
   </footer>
 
   <script
